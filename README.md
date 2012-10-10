@@ -19,7 +19,7 @@ It converts XML files to CSV if the XML file is in following format:
         ...
     </root>
 
-<root> and <item> elements can use any name, these names are ignored. <value1>
+&lt;root&gt; and &lt;item&gt; elements can use any name, these names are ignored. &lt;value1&gt;
 and other value elements are important as these are converted to the CSV file.
 
 ## Prerequisities
