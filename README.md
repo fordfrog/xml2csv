@@ -54,8 +54,11 @@ Here is the usage information that xml2csv outputs if run without parameters:
     Filtering rows:
 
     --filter-column <name>
-        Column on which the filter should be applied. You can filter the rows even
-        on columns that are not part of the output.
+        Column on which the filter should be applied. When specifying filter command
+        line switches, you must you this switch as the first one as it initializes
+        new filter. You can specify more filters, each one beginning with this
+        switch. You can filter the rows even on columns that are not part of the
+        output.
     ..filter.values <file>
         Path to file containing values that the filter should use. Empty rows are
         added to the values too.
