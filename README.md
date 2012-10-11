@@ -41,12 +41,12 @@ Here is the usage information that xml2csv outputs if run without parameters:
 
     Usage: java -jar xml2csv-*.jar --columns <columns> --input <file> --output <file>
 
-    --columns
+    --columns <columns>
         List of columns that should be output to the CSV file. These names must
         correspond to the element names within the item element.
-    --input
+    --input <file>
         Path to the input XML file.
-    --output
+    --output <file>
         Path to the output CSV file. Output file content is always in UTF-8 encoding.
 
 ## To do
