@@ -135,6 +135,7 @@ public class Main {
      * @return collection of loaded values
      */
     private static Collection<String> loadValues(Path file) {
+        @SuppressWarnings("CollectionWithoutInitialCapacity")
         final Collection<String> values = new HashSet<>();
 
         try (final BufferedReader reader = Files.newBufferedReader(
