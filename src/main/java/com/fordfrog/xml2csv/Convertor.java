@@ -79,7 +79,7 @@ public class Convertor {
      * @param writer  writer
      * @param columns array of columns
      *
-     * @throws IOException Thrown if problem occurrred while writing to output
+     * @throws IOException Thrown if problem occurred while writing to output
      *                     file.
      */
     private static void writeHeader(final Writer writer,
