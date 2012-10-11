@@ -36,7 +36,7 @@
                         </manifest>
                     </archive>
                 </configuration>
-            </plugin>        
+            </plugin>
         </plugins>
     </build>
 

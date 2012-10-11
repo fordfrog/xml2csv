@@ -41,6 +41,8 @@ Here is the usage information that xml2csv outputs if run without parameters:
 
     Usage: java -jar xml2csv-*.jar --columns <columns> --input <file> --output <file>
 
+    General command line switches:
+
     --columns <columns>
         List of columns that should be output to the CSV file. These names must
         correspond to the element names within the item element.
@@ -48,6 +50,21 @@ Here is the usage information that xml2csv outputs if run without parameters:
         Path to the input XML file.
     --output <file>
         Path to the output CSV file. Output file content is always in UTF-8 encoding.
+
+    Filtering rows:
+
+    --filter-column <name>
+        Column on which the filter should be applied. You can filter the rows even
+        on columns that are not part of the output.
+    ..filter.values <file>
+        Path to file containing values that the filter should use. Empty rows are
+        added to the values too.
+    --filter-exclude
+        Excludes all rows where the column value matches one of the specified values.
+    --filter-include
+        Includes all rows where the column value matches one of the specified values.
+        This is the default behavior if --filter-exclude|--filter-include is not
+        specified.
 
 ## To do
 
@@ -58,6 +75,10 @@ Nothing at this moment.
 xml2csv is distributed under MIT license.
 
 ## Changelog
+
+## Version 1.1.0
+
+* Added support for filtering rows.
 
 ## Version 1.0.0
 

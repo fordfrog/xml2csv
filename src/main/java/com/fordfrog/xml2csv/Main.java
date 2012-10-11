@@ -25,9 +25,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
 
 /**
@@ -50,15 +54,33 @@ public class Main {
             return;
         }
 
+        final Filters filters = new Filters();
         String[] columns = null;
         Path inputFile = null;
         Path outputFile = null;
+        Filter filter = null;
 
         for (int i = 0; i < args.length; i++) {
             switch (args[i]) {
                 case "--columns":
                     i++;
                     columns = args[i].split(",");
+                    break;
+                case "--filter-column":
+                    filter = new Filter();
+                    filters.addFilter(filter);
+                    i++;
+                    filter.setColumn(args[i]);
+                    break;
+                case "--filter-exclude":
+                    filter.setExclude(true);
+                    break;
+                case "--filter-include":
+                    filter.setExclude(false);
+                    break;
+                case "--filter-values":
+                    i++;
+                    filter.setValues(loadValues(Paths.get(args[i])));
                     break;
                 case "--input":
                     i++;
@@ -81,7 +103,7 @@ public class Main {
         Objects.requireNonNull(columns, "--output argument must be specified, "
                 + "example: --output output_file_path");
 
-        Convertor.convert(inputFile, outputFile, columns);
+        Convertor.convert(inputFile, outputFile, columns, filters);
     }
 
     /**
@@ -103,5 +125,30 @@ public class Main {
             throw new RuntimeException(
                     "Failed to output usage information", ex);
         }
+    }
+
+    /**
+     * Loads list of values from specified file.
+     *
+     * @param file file path
+     *
+     * @return collection of loaded values
+     */
+    private static Collection<String> loadValues(Path file) {
+        final Collection<String> values = new HashSet<>();
+
+        try (final BufferedReader reader = Files.newBufferedReader(
+                        file, Charset.forName("UTF-8"))) {
+            String line = reader.readLine();
+
+            while (line != null) {
+                values.add(line);
+                line = reader.readLine();
+            }
+        } catch (final IOException ex) {
+            throw new RuntimeException("Failed to load values", ex);
+        }
+
+        return values;
     }
 }
