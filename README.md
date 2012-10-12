@@ -100,6 +100,7 @@ xml2csv is distributed under MIT license.
 ## Version 1.1.0
 
 * Added support for filtering rows.
+* Added support for remapping (replacing) values.
 
 ## Version 1.0.0
 
