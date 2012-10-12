@@ -17,7 +17,7 @@ Filtering rows:
     line switches, you must use this switch as the first one as it initializes
     new filter. You can specify more filters, each one beginning with this
     switch. You can filter the rows even on columns that are not part of the
-    output.
+    output. Filtering is performed before remapping.
 ..filter.values <file>
     Path to file containing values that the filter should use. Empty rows are
     added to the values too.
@@ -27,3 +27,21 @@ Filtering rows:
     Includes all rows where the column value matches one of the specified values.
     This is the default behavior if --filter-exclude|--filter-include is not
     specified.
+
+Remapping (replacing) values:
+
+--remap-column <name>
+    Column in which original values should be replaced with values from map
+    file. When specifying remapping command line switches, you must use this
+    switch as the first one as it initializes new remapping. You can specify
+    more remappings, each one beginning with this switch. Remapping is performed
+    after filtering.
+--remap-map <file>
+    Path to file containing original value and new value pairs. The file uses
+    CSV format. Values can be escaped either using single-quote (') or
+    double-quote ("). Quotes within values can be escaped either doubling them
+    ("" and '') or backslash-escaping them (\" and \').
+
+Characters encoding:
+
+    Application expects all files being in UTF-8 encoding.

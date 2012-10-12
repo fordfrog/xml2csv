@@ -31,7 +31,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -55,10 +57,12 @@ public class Main {
         }
 
         final Filters filters = new Filters();
+        final Remappings remappings = new Remappings();
         String[] columns = null;
         Path inputFile = null;
         Path outputFile = null;
         Filter filter = null;
+        Remapping remapping = null;
 
         for (int i = 0; i < args.length; i++) {
             switch (args[i]) {
@@ -90,6 +94,16 @@ public class Main {
                     i++;
                     outputFile = Paths.get(args[i]);
                     break;
+                case "--remap-column":
+                    remapping = new Remapping();
+                    remappings.addRemapping(remapping);
+                    i++;
+                    remapping.setColumn(args[i]);
+                    break;
+                case "--remap-map":
+                    i++;
+                    remapping.setMap(loadMap(Paths.get(args[i])));
+                    break;
                 default:
                     throw new RuntimeException(MessageFormat.format(
                             "Unsupported command line argument: {0}", args[i]));
@@ -103,7 +117,7 @@ public class Main {
         Objects.requireNonNull(columns, "--output argument must be specified, "
                 + "example: --output output_file_path");
 
-        Convertor.convert(inputFile, outputFile, columns, filters);
+        Convertor.convert(inputFile, outputFile, columns, filters, remappings);
     }
 
     /**
@@ -134,7 +148,7 @@ public class Main {
      *
      * @return collection of loaded values
      */
-    private static Collection<String> loadValues(Path file) {
+    private static Collection<String> loadValues(final Path file) {
         @SuppressWarnings("CollectionWithoutInitialCapacity")
         final Collection<String> values = new HashSet<>();
 
@@ -151,5 +165,36 @@ public class Main {
         }
 
         return values;
+    }
+
+    /**
+     * Loads key value pairs from specified file. Values must be separated with
+     * comma.
+     *
+     * @param file file path
+     *
+     * @return map of loaded key value pairs
+     */
+    private static Map<String, String> loadMap(final Path file) {
+        @SuppressWarnings("CollectionWithoutInitialCapacity")
+        final Map<String, String> map = new HashMap<>();
+
+        try (final BufferedReader reader = Files.newBufferedReader(
+                        file, Charset.forName("UTF-8"))) {
+            String line = reader.readLine();
+
+            while (line != null) {
+                if (!line.isEmpty()) {
+                    final String[] pair = CsvUtils.parseValues(line);
+                    map.put(pair[0], pair.length > 1 ? pair[1] : "");
+                }
+
+                line = reader.readLine();
+            }
+        } catch (final IOException ex) {
+            throw new RuntimeException("Failed to load map", ex);
+        }
+
+        return map;
     }
 }
