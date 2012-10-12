@@ -55,7 +55,7 @@ Here is the usage information that xml2csv outputs if run without parameters:
 
     --filter-column <name>
         Column on which the filter should be applied. When specifying filter command
-        line switches, you must you this switch as the first one as it initializes
+        line switches, you must use this switch as the first one as it initializes
         new filter. You can specify more filters, each one beginning with this
         switch. You can filter the rows even on columns that are not part of the
         output.
