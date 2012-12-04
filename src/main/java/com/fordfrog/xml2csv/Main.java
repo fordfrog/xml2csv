@@ -112,10 +112,10 @@ public class Main {
 
         Objects.requireNonNull(columns, "--columns argument must be specified, "
                 + "example: --columns COL1,COL2");
-        Objects.requireNonNull(columns, "--input argument must be specified, "
+        Objects.requireNonNull(inputFile, "--input argument must be specified, "
                 + "example: --input input_file_path");
-        Objects.requireNonNull(columns, "--output argument must be specified, "
-                + "example: --output output_file_path");
+        Objects.requireNonNull(outputFile, "--output argument must be "
+                + "specified, example: --output output_file_path");
 
         Convertor.convert(inputFile, outputFile, columns, filters, remappings);
     }
