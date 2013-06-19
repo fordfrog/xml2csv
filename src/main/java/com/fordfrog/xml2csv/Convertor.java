@@ -52,11 +52,11 @@ public class Convertor {
      */
     public static void convert(final Path inputFile, final Path outputFile,
             final String[] columns, final Filters filters,
-            final Remappings remappings, final char separator) {
+            final Remappings remappings, final char separator, final boolean trim) {
         try (final InputStream inputStream = Files.newInputStream(inputFile);
                 final Writer writer = Files.newBufferedWriter(
                         outputFile, Charset.forName("UtF-8"))) {
-            convert(inputStream, writer, columns, filters, remappings, separator);
+            convert(inputStream, writer, columns, filters, remappings, separator, trim);
         } catch (final IOException ex) {
             throw new RuntimeException("IO operation failed", ex);
         } 
@@ -71,10 +71,11 @@ public class Convertor {
      * @param filters    optional filters
      * @param remappings optional remappings
      * @param separator field separator
+     * @param trim whether to trim values or not
      */
     public static void convert(final InputStream inputStream, final Writer writer,
             final String[] columns, final Filters filters,
-            final Remappings remappings, final char separator) {
+            final Remappings remappings, final char separator, final boolean trim) {
         final XMLInputFactory xMLInputFactory = XMLInputFactory.newInstance();
 
         try {
@@ -87,7 +88,7 @@ public class Convertor {
                 switch (reader.next()) {
                     case XMLStreamReader.START_ELEMENT:
                         processRoot(
-                                reader, writer, columns, filters, remappings, separator);
+                                reader, writer, columns, filters, remappings, separator, trim);
                 }
             }
         } catch (final IOException ex) {
@@ -129,6 +130,7 @@ public class Convertor {
      * @param filters    optional filters
      * @param remappings optional remappings
      * @param separator field separator
+     * @param trim whether to trim values or not
      *
      * @throws XMLStreamException Thrown if problem occurred while reading XML
      *                            stream.
@@ -136,12 +138,12 @@ public class Convertor {
      */
     private static void processRoot(final XMLStreamReader reader,
             final Writer writer, final String[] columns, final Filters filters,
-            final Remappings remappings, final char separator) throws XMLStreamException,
+            final Remappings remappings, final char separator, final boolean trim) throws XMLStreamException,
             IOException {
         while (reader.hasNext()) {
             switch (reader.next()) {
                 case XMLStreamReader.START_ELEMENT:
-                    processItem(reader, writer, columns, filters, remappings, separator);
+                    processItem(reader, writer, columns, filters, remappings, separator, trim);
                     break;
                 case XMLStreamReader.END_ELEMENT:
                     return;
@@ -158,6 +160,7 @@ public class Convertor {
      * @param filters    optional filters
      * @param remappings optional remappings
      * @param separator field separator
+     * @param trim whether to trim values or not
      *
      * @throws XMLStreamException Thrown if problem occurred while reading XML
      *                            stream.
@@ -165,7 +168,7 @@ public class Convertor {
      */
     private static void processItem(final XMLStreamReader reader,
             final Writer writer, final String[] columns, final Filters filters,
-            final Remappings remappings, final char separator) throws XMLStreamException,
+            final Remappings remappings, final char separator, final boolean trim) throws XMLStreamException,
             IOException {
         final Map<String, String> values = new HashMap<>(columns.length);
 
@@ -180,7 +183,7 @@ public class Convertor {
                             remappings.replaceValues(values);
                         }
 
-                        writeRow(writer, columns, values, separator);
+                        writeRow(writer, columns, values, separator, trim);
                     }
 
                     return;
@@ -195,18 +198,23 @@ public class Convertor {
      * @param columns array of columns
      * @param values  map of values
      * @param separator field separator
+     * @param trim whether to trim values or not
      *
      * @throws IOException Thrown if problem occurred while writing to output
      *                     file.
      */
     private static void writeRow(final Writer writer, final String[] columns,
-            final Map<String, String> values, final char separator) throws IOException {
+            final Map<String, String> values, final char separator, final boolean trim) throws IOException {
         for (int i = 0; i < columns.length; i++) {
             if (i > 0) {
                 writer.append(separator);
             }
 
-            writer.append(CsvUtils.quoteString(values.get(columns[i])));
+            String value = values.get(columns[i]);
+            if (value != null && trim) {
+                value = value.trim();
+            }
+            writer.append(CsvUtils.quoteString(value));
         }
 
         writer.append('\n');

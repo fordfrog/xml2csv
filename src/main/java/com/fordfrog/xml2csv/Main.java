@@ -64,6 +64,7 @@ public class Main {
         Filter filter = null;
         Remapping remapping = null;
         char separator = ',';
+        boolean trimValues = false;
 
         for (int i = 0; i < args.length; i++) {
             switch (args[i]) {
@@ -113,6 +114,9 @@ public class Main {
                         throw new RuntimeException("Separator must be a character. ");
                     }
                     break;
+                case "--trim":
+                    trimValues = true;
+                    break;
                 default:
                     throw new RuntimeException(MessageFormat.format(
                             "Unsupported command line argument: {0}", args[i]));
@@ -126,7 +130,7 @@ public class Main {
         Objects.requireNonNull(outputFile, "--output argument must be "
                 + "specified, example: --output output_file_path");
 
-        Convertor.convert(inputFile, outputFile, columns, filters, remappings, separator);
+        Convertor.convert(inputFile, outputFile, columns, filters, remappings, separator, trimValues);
     }
 
     /**

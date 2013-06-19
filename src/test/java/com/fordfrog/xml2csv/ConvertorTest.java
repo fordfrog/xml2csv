@@ -30,7 +30,21 @@ public class ConvertorTest {
         String outputFile = "/output-simple.csv";
         Writer writer = new StringWriter();
         Convertor.convert(this.getClass().getResourceAsStream(inputFile), writer, new String[] { "value1", "value2",
-                "value3" }, null, null, ';');
+                "value3" }, null, null, ';', false);
+
+        String expected = readFile(outputFile, StandardCharsets.UTF_8);
+
+        assertEquals(expected, writer.toString());
+    }
+    
+    @Test
+    public void testConvertTrimValues()
+            throws IOException, URISyntaxException {
+        String inputFile = "/input-simple.xml";
+        String outputFile = "/output-trim.csv";
+        Writer writer = new StringWriter();
+        Convertor.convert(this.getClass().getResourceAsStream(inputFile), writer, new String[] { "value1", "value2",
+                "value3" }, null, null, ';', true);
 
         String expected = readFile(outputFile, StandardCharsets.UTF_8);
 
