@@ -65,6 +65,7 @@ public class Main {
         Remapping remapping = null;
         char separator = ',';
         boolean trimValues = false;
+        boolean join = false;
 
         for (int i = 0; i < args.length; i++) {
             switch (args[i]) {
@@ -117,6 +118,9 @@ public class Main {
                 case "--trim":
                     trimValues = true;
                     break;
+                case "--join":
+                    join = true;
+                    break;
                 default:
                     throw new RuntimeException(MessageFormat.format(
                             "Unsupported command line argument: {0}", args[i]));
@@ -130,7 +134,7 @@ public class Main {
         Objects.requireNonNull(columns, "--output argument must be specified, "
                 + "example: --output output_file_path");
 
-        Convertor.convert(inputFile, outputFile, columns, filters, remappings, separator, trimValues);
+        Convertor.convert(inputFile, outputFile, columns, filters, remappings, separator, trimValues, join);
     }
 
     /**

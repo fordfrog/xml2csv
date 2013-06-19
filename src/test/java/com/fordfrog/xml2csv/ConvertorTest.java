@@ -30,7 +30,7 @@ public class ConvertorTest {
         String outputFile = "/output-simple.csv";
         Writer writer = new StringWriter();
         Convertor.convert(this.getClass().getResourceAsStream(inputFile), writer, new String[] { "value1", "value2",
-                "value3" }, null, null, ';', false);
+                "value3" }, null, null, ';', false, false);
 
         String expected = readFile(outputFile, StandardCharsets.UTF_8);
 
@@ -44,10 +44,38 @@ public class ConvertorTest {
         String outputFile = "/output-trim.csv";
         Writer writer = new StringWriter();
         Convertor.convert(this.getClass().getResourceAsStream(inputFile), writer, new String[] { "value1", "value2",
-                "value3" }, null, null, ';', true);
+                "value3" }, null, null, ';', true, false);
 
         String expected = readFile(outputFile, StandardCharsets.UTF_8);
 
+        assertEquals(expected, writer.toString());
+    }
+    
+    @Test
+    public void testConvertMutipleSelectFirst()
+            throws IOException, URISyntaxException {
+        String inputFile = "/input-multiple.xml";
+        String outputFile = "/output-multiple-select-first.csv";
+        Writer writer = new StringWriter();
+
+        Convertor.convert(this.getClass().getResourceAsStream(inputFile), writer, new String[] { "value1", "value2",
+                "value3" }, null, null, ',', false, false);
+
+        String expected = readFile(outputFile, StandardCharsets.UTF_8);
+        assertEquals(expected, writer.toString());
+    }
+    
+    @Test
+    public void testConvertMutipleJoin()
+            throws IOException, URISyntaxException {
+        String inputFile = "/input-multiple.xml";
+        String outputFile = "/output-multiple-join.csv";
+        Writer writer = new StringWriter();
+
+        Convertor.convert(this.getClass().getResourceAsStream(inputFile), writer, new String[] { "value1", "value2",
+                "value3" }, null, null, ',', false, true);
+
+        String expected = readFile(outputFile, StandardCharsets.UTF_8);
         assertEquals(expected, writer.toString());
     }
 
