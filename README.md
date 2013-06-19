@@ -50,6 +50,13 @@ Here is the usage information that xml2csv outputs if run without parameters:
         Path to the input XML file.
     --output <file>
         Path to the output CSV file. Output file content is always in UTF-8 encoding.
+    --separator <character>
+	    Character that should be used to separate fields. Default value is (;). 
+    --trim
+	    Trim values. By default values are not trimmed. 
+    --join
+	    Join values of multiple elements into single value using (, ) as a separator. 
+	    By default value of the first element is saved to CSV. 
 
     Filtering rows:
 
