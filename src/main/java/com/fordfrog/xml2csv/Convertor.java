@@ -74,7 +74,7 @@ public class Convertor {
      */
     public static void convert(final InputStream inputStream, final Writer writer,
             final String[] columns, final Filters filters,
-            final Remappings remappings, char separator) {
+            final Remappings remappings, final char separator) {
         final XMLInputFactory xMLInputFactory = XMLInputFactory.newInstance();
 
         try {
@@ -108,7 +108,7 @@ public class Convertor {
      *                     file.
      */
     private static void writeHeader(final Writer writer,
-            final String[] columns, char separator) throws IOException {
+            final String[] columns, final char separator) throws IOException {
         for (int i = 0; i < columns.length; i++) {
             if (i > 0) {
                 writer.append(separator);
@@ -136,7 +136,7 @@ public class Convertor {
      */
     private static void processRoot(final XMLStreamReader reader,
             final Writer writer, final String[] columns, final Filters filters,
-            final Remappings remappings, char separator) throws XMLStreamException,
+            final Remappings remappings, final char separator) throws XMLStreamException,
             IOException {
         while (reader.hasNext()) {
             switch (reader.next()) {
@@ -165,7 +165,7 @@ public class Convertor {
      */
     private static void processItem(final XMLStreamReader reader,
             final Writer writer, final String[] columns, final Filters filters,
-            final Remappings remappings, char separator) throws XMLStreamException,
+            final Remappings remappings, final char separator) throws XMLStreamException,
             IOException {
         final Map<String, String> values = new HashMap<>(columns.length);
 
@@ -200,7 +200,7 @@ public class Convertor {
      *                     file.
      */
     private static void writeRow(final Writer writer, final String[] columns,
-            final Map<String, String> values, char separator) throws IOException {
+            final Map<String, String> values, final char separator) throws IOException {
         for (int i = 0; i < columns.length; i++) {
             if (i > 0) {
                 writer.append(separator);
