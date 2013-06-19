@@ -48,25 +48,46 @@ public class Convertor {
      * @param columns    array of column names
      * @param filters    optional filters
      * @param remappings optional remappings
+     * @param separator field separator
      */
     public static void convert(final Path inputFile, final Path outputFile,
             final String[] columns, final Filters filters,
-            final Remappings remappings) {
-        final XMLInputFactory xMLInputFactory = XMLInputFactory.newInstance();
-
+            final Remappings remappings, final char separator) {
         try (final InputStream inputStream = Files.newInputStream(inputFile);
                 final Writer writer = Files.newBufferedWriter(
                         outputFile, Charset.forName("UtF-8"))) {
+            convert(inputStream, writer, columns, filters, remappings, separator);
+        } catch (final IOException ex) {
+            throw new RuntimeException("IO operation failed", ex);
+        } 
+    }
+
+    /**
+     * Converts input stream with XML to CSV saved into writer.
+     *
+     * @param inputStream  input stream
+     * @param writer writer
+     * @param columns    array of column names
+     * @param filters    optional filters
+     * @param remappings optional remappings
+     * @param separator field separator
+     */
+    public static void convert(final InputStream inputStream, final Writer writer,
+            final String[] columns, final Filters filters,
+            final Remappings remappings, char separator) {
+        final XMLInputFactory xMLInputFactory = XMLInputFactory.newInstance();
+
+        try {
             final XMLStreamReader reader =
                     xMLInputFactory.createXMLStreamReader(inputStream);
 
-            writeHeader(writer, columns);
+            writeHeader(writer, columns, separator);
 
             while (reader.hasNext()) {
                 switch (reader.next()) {
                     case XMLStreamReader.START_ELEMENT:
                         processRoot(
-                                reader, writer, columns, filters, remappings);
+                                reader, writer, columns, filters, remappings, separator);
                 }
             }
         } catch (final IOException ex) {
@@ -81,15 +102,16 @@ public class Convertor {
      *
      * @param writer  writer
      * @param columns array of columns
+     * @param separator field separator
      *
      * @throws IOException Thrown if problem occurred while writing to output
      *                     file.
      */
     private static void writeHeader(final Writer writer,
-            final String[] columns) throws IOException {
+            final String[] columns, char separator) throws IOException {
         for (int i = 0; i < columns.length; i++) {
             if (i > 0) {
-                writer.append(',');
+                writer.append(separator);
             }
 
             writer.append(CsvUtils.quoteString(columns[i]));
@@ -106,6 +128,7 @@ public class Convertor {
      * @param columns    array of columns
      * @param filters    optional filters
      * @param remappings optional remappings
+     * @param separator field separator
      *
      * @throws XMLStreamException Thrown if problem occurred while reading XML
      *                            stream.
@@ -113,12 +136,12 @@ public class Convertor {
      */
     private static void processRoot(final XMLStreamReader reader,
             final Writer writer, final String[] columns, final Filters filters,
-            final Remappings remappings) throws XMLStreamException,
+            final Remappings remappings, char separator) throws XMLStreamException,
             IOException {
         while (reader.hasNext()) {
             switch (reader.next()) {
                 case XMLStreamReader.START_ELEMENT:
-                    processItem(reader, writer, columns, filters, remappings);
+                    processItem(reader, writer, columns, filters, remappings, separator);
                     break;
                 case XMLStreamReader.END_ELEMENT:
                     return;
@@ -134,6 +157,7 @@ public class Convertor {
      * @param columns    array of columns
      * @param filters    optional filters
      * @param remappings optional remappings
+     * @param separator field separator
      *
      * @throws XMLStreamException Thrown if problem occurred while reading XML
      *                            stream.
@@ -141,7 +165,7 @@ public class Convertor {
      */
     private static void processItem(final XMLStreamReader reader,
             final Writer writer, final String[] columns, final Filters filters,
-            final Remappings remappings) throws XMLStreamException,
+            final Remappings remappings, char separator) throws XMLStreamException,
             IOException {
         final Map<String, String> values = new HashMap<>(columns.length);
 
@@ -156,7 +180,7 @@ public class Convertor {
                             remappings.replaceValues(values);
                         }
 
-                        writeRow(writer, columns, values);
+                        writeRow(writer, columns, values, separator);
                     }
 
                     return;
@@ -170,15 +194,16 @@ public class Convertor {
      * @param writer  CSV file writer
      * @param columns array of columns
      * @param values  map of values
+     * @param separator field separator
      *
      * @throws IOException Thrown if problem occurred while writing to output
      *                     file.
      */
     private static void writeRow(final Writer writer, final String[] columns,
-            final Map<String, String> values) throws IOException {
+            final Map<String, String> values, char separator) throws IOException {
         for (int i = 0; i < columns.length; i++) {
             if (i > 0) {
-                writer.append(',');
+                writer.append(separator);
             }
 
             writer.append(CsvUtils.quoteString(values.get(columns[i])));
