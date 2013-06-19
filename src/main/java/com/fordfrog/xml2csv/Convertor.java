@@ -27,8 +27,12 @@ import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -49,14 +53,15 @@ public class Convertor {
      * @param filters    optional filters
      * @param remappings optional remappings
      * @param separator field separator
+     * @param join whether to join multiple values or not
      */
     public static void convert(final Path inputFile, final Path outputFile,
             final String[] columns, final Filters filters,
-            final Remappings remappings, final char separator, final boolean trim) {
+            final Remappings remappings, final char separator, final boolean trim, final boolean join) {
         try (final InputStream inputStream = Files.newInputStream(inputFile);
                 final Writer writer = Files.newBufferedWriter(
                         outputFile, Charset.forName("UtF-8"))) {
-            convert(inputStream, writer, columns, filters, remappings, separator, trim);
+            convert(inputStream, writer, columns, filters, remappings, separator, trim, join);
         } catch (final IOException ex) {
             throw new RuntimeException("IO operation failed", ex);
         } 
@@ -72,10 +77,11 @@ public class Convertor {
      * @param remappings optional remappings
      * @param separator field separator
      * @param trim whether to trim values or not
+     * @param join whether to join multiple values or not
      */
     public static void convert(final InputStream inputStream, final Writer writer,
             final String[] columns, final Filters filters,
-            final Remappings remappings, final char separator, final boolean trim) {
+            final Remappings remappings, final char separator, final boolean trim, final boolean join) {
         final XMLInputFactory xMLInputFactory = XMLInputFactory.newInstance();
 
         try {
@@ -88,7 +94,7 @@ public class Convertor {
                 switch (reader.next()) {
                     case XMLStreamReader.START_ELEMENT:
                         processRoot(
-                                reader, writer, columns, filters, remappings, separator, trim);
+                                reader, writer, columns, filters, remappings, separator, trim, join);
                 }
             }
         } catch (final IOException ex) {
@@ -131,6 +137,7 @@ public class Convertor {
      * @param remappings optional remappings
      * @param separator field separator
      * @param trim whether to trim values or not
+     * @param join whether to join multiple values or not
      *
      * @throws XMLStreamException Thrown if problem occurred while reading XML
      *                            stream.
@@ -138,12 +145,12 @@ public class Convertor {
      */
     private static void processRoot(final XMLStreamReader reader,
             final Writer writer, final String[] columns, final Filters filters,
-            final Remappings remappings, final char separator, final boolean trim) throws XMLStreamException,
+            final Remappings remappings, final char separator, final boolean trim, final boolean join) throws XMLStreamException,
             IOException {
         while (reader.hasNext()) {
             switch (reader.next()) {
                 case XMLStreamReader.START_ELEMENT:
-                    processItem(reader, writer, columns, filters, remappings, separator, trim);
+                    processItem(reader, writer, columns, filters, remappings, separator, trim, join);
                     break;
                 case XMLStreamReader.END_ELEMENT:
                     return;
@@ -161,6 +168,7 @@ public class Convertor {
      * @param remappings optional remappings
      * @param separator field separator
      * @param trim whether to trim values or not
+     * @param join whether to join multiple values or not
      *
      * @throws XMLStreamException Thrown if problem occurred while reading XML
      *                            stream.
@@ -168,9 +176,9 @@ public class Convertor {
      */
     private static void processItem(final XMLStreamReader reader,
             final Writer writer, final String[] columns, final Filters filters,
-            final Remappings remappings, final char separator, final boolean trim) throws XMLStreamException,
+            final Remappings remappings, final char separator, final boolean trim, final boolean join) throws XMLStreamException,
             IOException {
-        final Map<String, String> values = new HashMap<>(columns.length);
+        final Map<String, List<String>> values = new HashMap<>(columns.length);
 
         while (reader.hasNext()) {
             switch (reader.next()) {
@@ -178,12 +186,16 @@ public class Convertor {
                     processValue(reader, values);
                     break;
                 case XMLStreamReader.END_ELEMENT:
-                    if (filters == null || filters.matchesFilters(values)) {
+                    final Map<String, String> singleValues = new HashMap<>(columns.length);
+                    for (Entry<String, List<String>> mapEntry : values.entrySet()) {
+                        singleValues.put(mapEntry.getKey(), prepareValue(mapEntry.getValue(), ", ", trim, join));
+                    }
+                    if (filters == null || filters.matchesFilters(singleValues)) {
                         if (remappings != null) {
-                            remappings.replaceValues(values);
+                            remappings.replaceValues(singleValues);
                         }
 
-                        writeRow(writer, columns, values, separator, trim);
+                        writeRow(writer, columns, singleValues, separator);
                     }
 
                     return;
@@ -198,26 +210,54 @@ public class Convertor {
      * @param columns array of columns
      * @param values  map of values
      * @param separator field separator
-     * @param trim whether to trim values or not
      *
      * @throws IOException Thrown if problem occurred while writing to output
      *                     file.
      */
     private static void writeRow(final Writer writer, final String[] columns,
-            final Map<String, String> values, final char separator, final boolean trim) throws IOException {
+            final Map<String, String> values, final char separator) throws IOException {
         for (int i = 0; i < columns.length; i++) {
             if (i > 0) {
                 writer.append(separator);
             }
 
-            String value = values.get(columns[i]);
-            if (value != null && trim) {
-                value = value.trim();
-            }
-            writer.append(CsvUtils.quoteString(value));
+            writer.append(CsvUtils.quoteString(values.get(columns[i])));
         }
 
         writer.append('\n');
+    }
+    
+    /**
+     * Joins elements from the list using given separator or return first element from the list. Use trim=<code>true</code> to trim values. 
+     *  
+     * @param values list of values
+     * @param valueSeparator string used to separate values
+     * @param trim whether to trim values or not
+     * @param join whether to join multiple values or not
+     * 
+     * @return String containing separated values from the list or first element from the list. 
+     */
+    private static String prepareValue(List<String> values, final String valueSeparator, final boolean trim, final boolean join) {
+        if (values.isEmpty()) {
+            return null;
+        }
+        if (join) {
+            StringBuffer stringBuffer = new StringBuffer();
+            for (int i = 0; i < values.size(); i++) {
+                String value = values.get(i);
+                if (trim) {
+                    value = value.trim();
+                }
+                stringBuffer.append(value);
+                if (i < values.size() - 1) {
+                    stringBuffer.append(valueSeparator);
+                }
+            }
+            return stringBuffer.toString();
+        } else {
+            String value = values.get(0);
+            return trim ? value.trim() : value;
+        }
     }
 
     /**
@@ -231,9 +271,12 @@ public class Convertor {
      *                            stream.
      */
     private static void processValue(final XMLStreamReader reader,
-            final Map<String, String> values) throws XMLStreamException {
+            final Map<String, List<String>> values) throws XMLStreamException {
         final String localName = reader.getLocalName();
-        values.put(localName, reader.getElementText());
+        if (!values.containsKey(localName)) {
+            values.put(localName, new ArrayList<String>());
+        }
+        values.get(localName).add(reader.getElementText());
     }
 
     /**
