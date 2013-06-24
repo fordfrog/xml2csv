@@ -104,6 +104,12 @@ xml2csv is distributed under MIT license.
 
 ## Changelog
 
+## Version 1.2.0
+
+* Added support for trimming values.
+* Added support for custom separator.
+* Added support for joining values of repeated XML elements.
+
 ## Version 1.1.0
 
 * Added support for filtering rows.
