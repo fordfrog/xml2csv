@@ -66,6 +66,7 @@ public class Main {
         char separator = ',';
         boolean trimValues = false;
         boolean join = false;
+        String itemName = null;
 
         for (int i = 0; i < args.length; i++) {
             switch (args[i]) {
@@ -92,6 +93,10 @@ public class Main {
                 case "--input":
                     i++;
                     inputFile = Paths.get(args[i]);
+                    break;
+                case "--item-name":
+                    i++;
+                    itemName = args[i];
                     break;
                 case "--output":
                     i++;
@@ -134,7 +139,7 @@ public class Main {
         Objects.requireNonNull(outputFile, "--output argument must be "
                 + "specified, example: --output output_file_path");
 
-        Convertor.convert(inputFile, outputFile, columns, filters, remappings, separator, trimValues, join);
+        Convertor.convert(inputFile, outputFile, columns, filters, remappings, separator, trimValues, join, itemName);
     }
 
     /**

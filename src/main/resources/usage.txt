@@ -15,7 +15,10 @@ General command line switches:
 	Trim values. By default values are not trimmed. 
 --join
 	Join values of multiple elements into single value using (, ) as a separator. 
-	By default value of the first element is saved to CSV. 
+	By default value of the first element is saved to CSV.
+--item-name
+	XPath which refers to XML element which will be converted to a row. It cannot 
+	end with slash (/).
 
 Filtering rows:
 

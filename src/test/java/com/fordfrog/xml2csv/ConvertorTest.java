@@ -30,7 +30,7 @@ public class ConvertorTest {
         String outputFile = "/output-simple.csv";
         Writer writer = new StringWriter();
         Convertor.convert(this.getClass().getResourceAsStream(inputFile), writer, new String[] { "value1", "value2",
-                "value3" }, null, null, ';', false, false);
+                "value3" }, null, null, ';', false, false, "/root/item");
 
         String expected = readFile(outputFile, StandardCharsets.UTF_8);
 
@@ -44,7 +44,7 @@ public class ConvertorTest {
         String outputFile = "/output-trim.csv";
         Writer writer = new StringWriter();
         Convertor.convert(this.getClass().getResourceAsStream(inputFile), writer, new String[] { "value1", "value2",
-                "value3" }, null, null, ';', true, false);
+                "value3" }, null, null, ';', true, false, "/root/item");
 
         String expected = readFile(outputFile, StandardCharsets.UTF_8);
 
@@ -59,7 +59,7 @@ public class ConvertorTest {
         Writer writer = new StringWriter();
 
         Convertor.convert(this.getClass().getResourceAsStream(inputFile), writer, new String[] { "value1", "value2",
-                "value3" }, null, null, ',', false, false);
+                "value3" }, null, null, ',', false, false, "/root/item");
 
         String expected = readFile(outputFile, StandardCharsets.UTF_8);
         assertEquals(expected, writer.toString());
@@ -73,7 +73,36 @@ public class ConvertorTest {
         Writer writer = new StringWriter();
 
         Convertor.convert(this.getClass().getResourceAsStream(inputFile), writer, new String[] { "value1", "value2",
-                "value3" }, null, null, ',', false, true);
+                "value3" }, null, null, ',', false, true, "/root/item");
+
+        String expected = readFile(outputFile, StandardCharsets.UTF_8);
+        assertEquals(expected, writer.toString());
+    }
+    
+    @Test
+    public void testConvertDeep()
+            throws IOException, URISyntaxException {
+        String inputFile = "/input-deep.xml";
+        String outputFile = "/output-deep.csv";
+        Writer writer = new StringWriter();
+        Convertor.convert(this.getClass().getResourceAsStream(inputFile), writer, new String[] { "value1", "value2",
+                "value3" }, null, null, ';', false, false, "/root/item0/item1/item2");
+
+        String expected = readFile(outputFile, StandardCharsets.UTF_8);
+
+        assertEquals(expected, writer.toString());
+    }
+    
+
+    @Test
+    public void testConvertHierarchy()
+            throws IOException, URISyntaxException {
+        String inputFile = "/input-hierarchy.xml";
+        String outputFile = "/output-hierarchy.csv";
+        Writer writer = new StringWriter();
+
+        Convertor.convert(this.getClass().getResourceAsStream(inputFile), writer, new String[] { "header/value1",
+                "body/value3", "body/value4/value41", "body/value4/value42" }, null, null, ',', false, false, "/root/item");
 
         String expected = readFile(outputFile, StandardCharsets.UTF_8);
         assertEquals(expected, writer.toString());
