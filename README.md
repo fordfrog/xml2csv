@@ -4,23 +4,32 @@ Simple XML to CSV conversion utility.
 
 ## What it does exactly?
 
-It converts XML files to CSV if the XML file is in following format:
+It converts any XML file to CSV:
 
     <root>
         <item>
-            <value1>...</value1>
-            <value2>...</value2>
-            <value3>...</value3>
+        	<subitem1>
+	            <value1>...</value1>
+	            <value2>...</value2>
+        	</subitem1>
+        	<subitem2>
+	            <value3>...</value3>
+        	</subitem2>
         </item>
         <item>
-            <value1>...</value1>
-            <value3>...</value3>
+            <subitem1>
+	            <value1>...</value1>
+        	</subitem1>
+        	<subitem2>
+	            <value3>...</value3>
+        	</subitem2>
         </item>
         ...
     </root>
 
-&lt;root&gt; and &lt;item&gt; elements can use any name, these names are ignored. &lt;value1&gt;
-and other value elements are important as these are converted to the CSV file.
+choose any XML element using XPath expression in order to select XML elements 
+for conversion to CSV file. Only children elements with text of chosen element 
+will be converted. 
 
 ## Prerequisities
 
@@ -109,6 +118,7 @@ xml2csv is distributed under MIT license.
 * Added support for trimming values.
 * Added support for custom separator.
 * Added support for joining values of repeated XML elements.
+* Added support for handling any XML document. 
 
 ## Version 1.1.0
 

@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -54,14 +55,15 @@ public class Convertor {
      * @param remappings optional remappings
      * @param separator field separator
      * @param join whether to join multiple values or not
+     * @param itemName XPath which refers to XML element which will be converted to a row
      */
     public static void convert(final Path inputFile, final Path outputFile,
             final String[] columns, final Filters filters,
-            final Remappings remappings, final char separator, final boolean trim, final boolean join) {
+            final Remappings remappings, final char separator, final boolean trim, final boolean join, final String itemName) {
         try (final InputStream inputStream = Files.newInputStream(inputFile);
                 final Writer writer = Files.newBufferedWriter(
                         outputFile, Charset.forName("UtF-8"))) {
-            convert(inputStream, writer, columns, filters, remappings, separator, trim, join);
+            convert(inputStream, writer, columns, filters, remappings, separator, trim, join, itemName);
         } catch (final IOException ex) {
             throw new RuntimeException("IO operation failed", ex);
         } 
@@ -78,11 +80,19 @@ public class Convertor {
      * @param separator field separator
      * @param trim whether to trim values or not
      * @param join whether to join multiple values or not
+     * @param itemName XPath which refers to XML element which will be converted to a row
      */
     public static void convert(final InputStream inputStream, final Writer writer,
             final String[] columns, final Filters filters,
-            final Remappings remappings, final char separator, final boolean trim, final boolean join) {
+            final Remappings remappings, final char separator, final boolean trim, final boolean join, final String itemName) {
         final XMLInputFactory xMLInputFactory = XMLInputFactory.newInstance();
+        String itemXPath = itemName;
+        if (itemName.trim().isEmpty()){
+            throw new IllegalArgumentException("itemName is an empty string. ");
+        }
+        if (itemName.trim().length() != 1 && itemName.endsWith("/")){
+            throw new IllegalArgumentException("itemName cannot end with a shash (/). ");
+        }
 
         try {
             final XMLStreamReader reader =
@@ -94,7 +104,7 @@ public class Convertor {
                 switch (reader.next()) {
                     case XMLStreamReader.START_ELEMENT:
                         processRoot(
-                                reader, writer, columns, filters, remappings, separator, trim, join);
+                                reader, writer, columns, filters, remappings, separator, trim, join, getParentName(null, reader.getLocalName()), itemXPath);
                 }
             }
         } catch (final IOException ex) {
@@ -138,6 +148,8 @@ public class Convertor {
      * @param separator field separator
      * @param trim whether to trim values or not
      * @param join whether to join multiple values or not
+     * @param parentElement XPath which refers to parent element
+     * @param itemName XPath which refers to XML element which will be converted to a row
      *
      * @throws XMLStreamException Thrown if problem occurred while reading XML
      *                            stream.
@@ -145,12 +157,18 @@ public class Convertor {
      */
     private static void processRoot(final XMLStreamReader reader,
             final Writer writer, final String[] columns, final Filters filters,
-            final Remappings remappings, final char separator, final boolean trim, final boolean join) throws XMLStreamException,
+            final Remappings remappings, final char separator, final boolean trim, final boolean join, final String parentElement, final String itemName) throws XMLStreamException,
             IOException {
         while (reader.hasNext()) {
             switch (reader.next()) {
                 case XMLStreamReader.START_ELEMENT:
-                    processItem(reader, writer, columns, filters, remappings, separator, trim, join);
+                    String currentElementPath = getParentName(parentElement, reader.getLocalName());
+                    if ((currentElementPath).compareTo(itemName) == 0) {
+                        Map<String, List<String>> values = new HashMap<>(columns.length);
+                        processItem(reader, writer, columns, filters, remappings, separator, trim, join, currentElementPath, values, itemName);
+                    } else {
+                        processRoot(reader, writer, columns, filters, remappings, separator, trim, join, currentElementPath, itemName);
+                    }
                     break;
                 case XMLStreamReader.END_ELEMENT:
                     return;
@@ -169,6 +187,9 @@ public class Convertor {
      * @param separator field separator
      * @param trim whether to trim values or not
      * @param join whether to join multiple values or not
+     * @param parentElement XPath which refers to parent element
+     * @param values values of XML element for current row
+     * @param itemName element name which will be converted to row
      *
      * @throws XMLStreamException Thrown if problem occurred while reading XML
      *                            stream.
@@ -176,28 +197,38 @@ public class Convertor {
      */
     private static void processItem(final XMLStreamReader reader,
             final Writer writer, final String[] columns, final Filters filters,
-            final Remappings remappings, final char separator, final boolean trim, final boolean join) throws XMLStreamException,
+            final Remappings remappings, final char separator, final boolean trim, final boolean join, final String parentElement, final Map<String, List<String>> values, final String itemName) throws XMLStreamException,
             IOException {
-        final Map<String, List<String>> values = new HashMap<>(columns.length);
+        StringBuffer buffer = new StringBuffer();
 
         while (reader.hasNext()) {
             switch (reader.next()) {
                 case XMLStreamReader.START_ELEMENT:
-                    processValue(reader, values);
+                    String currentElementPath = getParentName(parentElement, reader.getLocalName());
+                    processItem(reader, writer, columns, filters, remappings, separator, trim, join, currentElementPath, values, itemName);
+                    break;
+                case XMLStreamReader.CHARACTERS:
+                    if (reader.isWhiteSpace()){
+                        break;
+                    }
+                    buffer.append(reader.getText());
                     break;
                 case XMLStreamReader.END_ELEMENT:
-                    final Map<String, String> singleValues = new HashMap<>(columns.length);
-                    for (Entry<String, List<String>> mapEntry : values.entrySet()) {
-                        singleValues.put(mapEntry.getKey(), prepareValue(mapEntry.getValue(), ", ", trim, join));
-                    }
-                    if (filters == null || filters.matchesFilters(singleValues)) {
-                        if (remappings != null) {
-                            remappings.replaceValues(singleValues);
+                    if ((parentElement).compareTo(itemName) == 0) {
+                        final Map<String, String> singleValues = new HashMap<>(columns.length);
+                        for (Entry<String, List<String>> mapEntry : values.entrySet()) {
+                            singleValues.put(mapEntry.getKey(), prepareValue(mapEntry.getValue(), ", ", trim, join));
                         }
-
-                        writeRow(writer, columns, singleValues, separator);
-                    }
-
+                        if (filters == null || filters.matchesFilters(singleValues)) {
+                            if (remappings != null) {
+                                remappings.replaceValues(singleValues);
+                            }
+    
+                            writeRow(writer, columns, singleValues, separator);
+                        }
+                      } else {
+                          processValue(parentElement.replaceFirst(Pattern.quote(itemName + "/"), ""), buffer.toString(), values);                      
+                      }
                     return;
             }
         }
@@ -259,24 +290,31 @@ public class Convertor {
             return trim ? value.trim() : value;
         }
     }
+    
+    /**
+     * Prepare path to the current element. 
+     * 
+     * @param parentName path to parent element
+     * @param currentElement XML element name
+     * @return path to the current element
+     */
+    private static String getParentName(final String parentName, final String currentElement) {
+        return (parentName == null ? "" : parentName) + "/" + currentElement;
+    }
 
     /**
-     * Processes single value of XML item. Only columns contains in array are
+     * Adds a single value of XML item. Only columns contains in array are
      * added to the values map.
      *
-     * @param reader XML stream reader
+     * @param elementName name of XML element
+     * @param value value to be added
      * @param values map for storing values
-     *
-     * @throws XMLStreamException Thrown if problem occurred while reading XML
-     *                            stream.
      */
-    private static void processValue(final XMLStreamReader reader,
-            final Map<String, List<String>> values) throws XMLStreamException {
-        final String localName = reader.getLocalName();
-        if (!values.containsKey(localName)) {
-            values.put(localName, new ArrayList<String>());
+    private static void processValue(String elementName, String value, Map<String, List<String>> values) {
+        if (!values.containsKey(elementName)) {
+            values.put(elementName, new ArrayList<String>());
         }
-        values.get(localName).add(reader.getElementText());
+        values.get(elementName).add(value);        
     }
 
     /**
