@@ -138,6 +138,10 @@ public class Main {
                 + "example: --input input_file_path");
         Objects.requireNonNull(outputFile, "--output argument must be "
                 + "specified, example: --output output_file_path");
+        Objects.requireNonNull(columns, "--output argument must be specified, "
+                + "example: --output output_file_path");
+        Objects.requireNonNull(itemName, "--item-name argument must be specified, "
+                + "example: --item-name /root/item");
 
         Convertor.convert(inputFile, outputFile, columns, filters, remappings, separator, trimValues, join, itemName);
     }
