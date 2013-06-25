@@ -48,7 +48,7 @@ located.
 
 Here is the usage information that xml2csv outputs if run without parameters:
 
-    Usage: java -jar xml2csv-*.jar --columns <columns> --input <file> --output <file>
+    Usage: java -jar xml2csv-*.jar --columns <columns> --input <file> --output <file> --item-name <xpath>
 
     General command line switches:
 
@@ -66,6 +66,9 @@ Here is the usage information that xml2csv outputs if run without parameters:
     --join
 	    Join values of multiple elements into single value using (, ) as a separator. 
 	    By default value of the first element is saved to CSV. 
+	--item-name
+		XPath which refers to XML element which will be converted to a row. It cannot 
+		end with slash (/).
 
     Filtering rows:
 
