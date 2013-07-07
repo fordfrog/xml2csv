@@ -57,18 +57,18 @@ Here is the usage information that xml2csv outputs if run without parameters:
         correspond to the element names within the item element.
     --input <file>
         Path to the input XML file.
+    --item-name
+        XPath which refers to XML element which will be converted to a row. It cannot
+        end with slash (/).
+    --join
+        Join values of multiple elements into single value using (, ) as a separator.
+        By default value of the first element is saved to CSV.
     --output <file>
         Path to the output CSV file. Output file content is always in UTF-8 encoding.
     --separator <character>
-	    Character that should be used to separate fields. Default value is (;). 
+        Character that should be used to separate fields. Default value is (;).
     --trim
-	    Trim values. By default values are not trimmed. 
-    --join
-	    Join values of multiple elements into single value using (, ) as a separator. 
-	    By default value of the first element is saved to CSV. 
-	--item-name
-		XPath which refers to XML element which will be converted to a row. It cannot 
-		end with slash (/).
+        Trim values. By default values are not trimmed.
 
     Filtering rows:
 
@@ -121,7 +121,7 @@ xml2csv is distributed under MIT license.
 * Added support for trimming values.
 * Added support for custom separator.
 * Added support for joining values of repeated XML elements.
-* Added support for handling any XML document. 
+* Added support for handling any XML document.
 
 ## Version 1.1.0
 
