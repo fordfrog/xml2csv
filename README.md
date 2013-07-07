@@ -27,9 +27,9 @@ It converts any XML file to CSV:
         ...
     </root>
 
-choose any XML element using XPath expression in order to select XML elements 
-for conversion to CSV file. Only children elements with text of chosen element 
-will be converted. 
+Choose any XML element using XPath expression in order to select XML elements
+for conversion to CSV file. Only child elements that match the expression will
+be converted.
 
 ## Prerequisities
 
