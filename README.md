@@ -116,6 +116,10 @@ xml2csv is distributed under MIT license.
 
 ## Changelog
 
+## Version 1.2.1
+
+* Updated plugin and dependency versions.
+
 ## Version 1.2.0
 
 * Added support for trimming values.
