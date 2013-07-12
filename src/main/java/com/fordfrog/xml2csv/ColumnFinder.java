@@ -103,13 +103,13 @@ public class ColumnFinder {
 	if (list.size() == 0) {
 	    return "";
 	}
-	StringBuffer buffer = new StringBuffer();
-	buffer.append(list.get(0));
+	StringBuilder sb = new StringBuilder();
+	sb.append(list.get(0));
 	for (int i = 1; i < list.size(); i++) {
-	    buffer.append(',');
-	    buffer.append(list.get(i));
+	    sb.append(',');
+	    sb.append(list.get(i));
 	}
-	return buffer.toString();
+	return sb.toString();
     }
 
     /**

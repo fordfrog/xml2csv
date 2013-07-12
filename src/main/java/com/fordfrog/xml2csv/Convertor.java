@@ -199,7 +199,7 @@ public class Convertor {
             final Writer writer, final String[] columns, final Filters filters,
             final Remappings remappings, final char separator, final boolean trim, final boolean join, final String parentElement, final Map<String, List<String>> values, final String itemName) throws XMLStreamException,
             IOException {
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
 
         while (reader.hasNext()) {
             switch (reader.next()) {
@@ -211,7 +211,7 @@ public class Convertor {
                     if (reader.isWhiteSpace()){
                         break;
                     }
-                    buffer.append(reader.getText());
+                    sb.append(reader.getText());
                     break;
                 case XMLStreamReader.END_ELEMENT:
                     if ((parentElement).compareTo(itemName) == 0) {
@@ -227,7 +227,7 @@ public class Convertor {
                             writeRow(writer, columns, singleValues, separator);
                         }
                       } else {
-                          processValue(parentElement.replaceFirst(Pattern.quote(itemName + "/"), ""), buffer.toString(), values);                      
+                          processValue(parentElement.replaceFirst(Pattern.quote(itemName + "/"), ""), sb.toString(), values);                      
                       }
                     return;
             }
@@ -273,18 +273,18 @@ public class Convertor {
             return null;
         }
         if (join) {
-            StringBuffer stringBuffer = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             for (int i = 0; i < values.size(); i++) {
                 String value = values.get(i);
                 if (trim) {
                     value = value.trim();
                 }
-                stringBuffer.append(value);
+                sb.append(value);
                 if (i < values.size() - 1) {
-                    stringBuffer.append(valueSeparator);
+                    sb.append(valueSeparator);
                 }
             }
-            return stringBuffer.toString();
+            return sb.toString();
         } else {
             String value = values.get(0);
             return trim ? value.trim() : value;
