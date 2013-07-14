@@ -208,9 +208,6 @@ public class Convertor {
                     processItem(reader, writer, columns, filters, remappings, separator, trim, join, currentElementPath, values, itemName);
                     break;
                 case XMLStreamReader.CHARACTERS:
-                    if (reader.isWhiteSpace()){
-                        break;
-                    }
                     sb.append(reader.getText());
                     break;
                 case XMLStreamReader.END_ELEMENT:
