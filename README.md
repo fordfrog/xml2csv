@@ -116,7 +116,7 @@ xml2csv is distributed under MIT license.
 
 ## Changelog
 
-## Version 1.2.2-SNAPSHOT
+## Version 1.2.2
 
 * Fixed removal of new lines from the strings.
 
