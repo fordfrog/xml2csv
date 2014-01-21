@@ -2,6 +2,7 @@ package com.fordfrog.xml2csv;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -35,6 +36,24 @@ public class ConvertorTest {
         String expected = readFile(outputFile, StandardCharsets.UTF_8);
 
         assertEquals(expected, writer.toString());
+    }
+    
+    @Test
+    public void testConvertNewLines()
+            throws IOException, URISyntaxException {
+        Writer writer = new StringWriter();
+        Convertor.convert(new ByteArrayInputStream("<r><i><v>1\n1</v></i></r>".getBytes()), writer, new String[] { "v" }, null, null, ';', false, false, "/r/i");
+
+        assertEquals("\"v\"\n\"1\n1\"\n", writer.toString());
+    }
+
+    @Test
+    public void testConvertNewLinesBetweenXMLEscape()
+            throws IOException, URISyntaxException {
+        Writer writer = new StringWriter();
+        Convertor.convert(new ByteArrayInputStream("<r><i><v>&lt;p /&gt;\n&lt;p /&gt;</v></i></r>".getBytes()), writer, new String[] { "v" }, null, null, ';', false, false, "/r/i");
+
+        assertEquals("\"v\"\n\"<p />\n<p />\"\n", writer.toString());
     }
     
     @Test
