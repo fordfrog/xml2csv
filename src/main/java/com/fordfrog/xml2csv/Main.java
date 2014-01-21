@@ -73,58 +73,98 @@ public class Main {
                 case "--columns":
                     i++;
                     columns = args[i].split(",");
+
                     break;
                 case "--filter-column":
                     filter = new Filter();
                     filters.addFilter(filter);
+
                     i++;
+
                     filter.setColumn(args[i]);
+
                     break;
                 case "--filter-exclude":
+                    if (filter == null) {
+                        throw new RuntimeException(
+                                "--filter-column must be specified first");
+                    }
+
                     filter.setExclude(true);
+
                     break;
                 case "--filter-include":
+                    if (filter == null) {
+                        throw new RuntimeException(
+                                "--filter-column must be specified first");
+                    }
+
                     filter.setExclude(false);
+
                     break;
                 case "--filter-values":
                     i++;
+
+                    if (filter == null) {
+                        throw new RuntimeException(
+                                "--filter-column must be specified first");
+                    }
+
                     filter.setValues(loadValues(Paths.get(args[i])));
+
                     break;
                 case "--input":
                     i++;
                     inputFile = Paths.get(args[i]);
+
                     break;
                 case "--item-name":
                     i++;
                     itemName = args[i];
+
                     break;
                 case "--output":
                     i++;
                     outputFile = Paths.get(args[i]);
+
                     break;
                 case "--remap-column":
                     remapping = new Remapping();
                     remappings.addRemapping(remapping);
+
                     i++;
+
                     remapping.setColumn(args[i]);
+
                     break;
                 case "--remap-map":
+                    if (remapping == null) {
+                        throw new RuntimeException(
+                                "--remap-column must be specified first");
+                    }
+
                     i++;
                     remapping.setMap(loadMap(Paths.get(args[i])));
+
                     break;
                 case "--separator":
                     i++;
+
                     if (args[i].length() == 1) {
                         separator = args[i].charAt(0);
                     } else {
-                        throw new RuntimeException("Separator must be a character. ");
+                        throw new RuntimeException(
+                                "Separator must be a character.");
                     }
+
                     break;
                 case "--trim":
                     trimValues = true;
+
                     break;
                 case "--join":
                     join = true;
+
                     break;
                 default:
                     throw new RuntimeException(MessageFormat.format(
@@ -140,10 +180,11 @@ public class Main {
                 + "specified, example: --output output_file_path");
         Objects.requireNonNull(columns, "--output argument must be specified, "
                 + "example: --output output_file_path");
-        Objects.requireNonNull(itemName, "--item-name argument must be specified, "
-                + "example: --item-name /root/item");
+        Objects.requireNonNull(itemName, "--item-name argument must be "
+                + "specified, example: --item-name /root/item");
 
-        Convertor.convert(inputFile, outputFile, columns, filters, remappings, separator, trimValues, join, itemName);
+        Convertor.convert(inputFile, outputFile, columns, filters, remappings,
+                separator, trimValues, join, itemName);
     }
 
     /**
@@ -151,8 +192,8 @@ public class Main {
      */
     @SuppressWarnings("UseOfSystemOutOrSystemErr")
     private static void printUsage() {
-        try (final InputStream inputStream =
-                        Main.class.getResourceAsStream("/usage.txt");
+        try (final InputStream inputStream = Main.class.getResourceAsStream(
+                "/usage.txt");
                 final BufferedReader reader = new BufferedReader(
                         new InputStreamReader(inputStream, "UTF-8"))) {
             String line = reader.readLine();
@@ -179,7 +220,7 @@ public class Main {
         final Collection<String> values = new HashSet<>();
 
         try (final BufferedReader reader = Files.newBufferedReader(
-                        file, Charset.forName("UTF-8"))) {
+                file, Charset.forName("UTF-8"))) {
             String line = reader.readLine();
 
             while (line != null) {
@@ -206,7 +247,7 @@ public class Main {
         final Map<String, String> map = new HashMap<>();
 
         try (final BufferedReader reader = Files.newBufferedReader(
-                        file, Charset.forName("UTF-8"))) {
+                file, Charset.forName("UTF-8"))) {
             String line = reader.readLine();
 
             while (line != null) {

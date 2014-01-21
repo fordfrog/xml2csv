@@ -59,8 +59,8 @@ public class CsvUtils {
         int pos = 0;
 
         while (pos + 1 < line.length()) {
-            final boolean quoted =
-                    line.charAt(pos) == '"' || line.charAt(pos) == '\'';
+            final boolean quoted = line.charAt(pos) == '"' || line.charAt(pos)
+                    == '\'';
 
             if (quoted) {
                 final int endPos = findEndQuote(line, pos);

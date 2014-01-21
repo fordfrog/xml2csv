@@ -111,17 +111,17 @@ public class Filter {
      */
     public boolean matchesFilter(final Map<String, String> itemValues) {
         if (values == null) {
-            return exclude ? true : false;
+            return exclude;
         }
 
         final String itemValue = itemValues.get(column);
 
         if (itemValue == null) {
-            return exclude ? true : false;
+            return exclude;
         } else if (values.contains(itemValue)) {
-            return exclude ? false : true;
+            return !exclude;
         } else {
-            return exclude ? true : false;
+            return exclude;
         }
     }
 }

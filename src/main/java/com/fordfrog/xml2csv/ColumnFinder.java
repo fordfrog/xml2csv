@@ -30,7 +30,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -39,11 +38,10 @@ import javax.xml.stream.XMLStreamReader;
  * Small tool which can be used to find names of all XML elements in a given XML
  * file. <br>
  * Result can be used as a argument for XML to CSV conversion utility.
- * 
+ *
  * @see Convertor
- * 
+ *
  * @author marcinm
- * 
  */
 public class ColumnFinder {
 
@@ -61,7 +59,7 @@ public class ColumnFinder {
      * Usage: ColumnFinder input-xml [parent-xpath]
      * <p>
      * For given XML:
-     * 
+     *
      * <pre>
      * {@code
      * <root>
@@ -76,147 +74,154 @@ public class ColumnFinder {
      *     </item>
      * </root>}
      * </pre>
-     * 
+     *
      * it will print:
-     * 
+     *
      * <pre>
      * /root/item/value1,/root/item/value2,/root/item/value3
      * </pre>
-     * 
+     *
      * If you pass {@code /root/item} as a parameter it will print:
-     * 
+     *
      * <pre>
      * value1,value2,value3
      * </pre>
-     * 
-     * 
-     * @param args
-     *            command array containing path to an XML file and name of a XML
-     *            element
-     * @throws IOException
-     *             if an I/O error occurs
+     *
+     * @param args command array containing path to an XML file and name of a
+     *             XML element
+     *
+     * @throws IOException if an I/O error occurs
      */
+    @SuppressWarnings("UseOfSystemOutOrSystemErr")
     public static void main(String[] args) throws IOException {
-	Path inputFile = null;
-	String itemName = null;
-	if (args == null || args.length < 1) {
-	    System.err.println("Usage: " + ColumnFinder.class.getName()
-		    + " input-xml parent-xpath");
-	    return;
-	} else if (args.length == 1) {
-	    itemName = "";
-	} else {
-	    itemName = args[1];
-	}
-	inputFile = Paths.get(args[0]);
-	System.out.println(toString(find(Files.newInputStream(inputFile),
-		itemName)));
+        final String itemName;
+
+        if (args == null || args.length < 1) {
+            System.err.println("Usage: " + ColumnFinder.class.getName()
+                    + " input-xml parent-xpath");
+
+            return;
+        } else if (args.length == 1) {
+            itemName = "";
+        } else {
+            itemName = args[1];
+        }
+
+        final Path inputFile = Paths.get(args[0]);
+
+        System.out.println(toString(find(Files.newInputStream(inputFile),
+                itemName)));
     }
 
     /**
      * Joins elements of list into single string using comma as a separator.
-     * 
-     * @param list
-     *            list of string values
+     *
+     * @param list list of string values
+     *
      * @return string with elements from given list separated by comma
      */
     private static String toString(final List<String> list) {
-	if (list.size() == 0) {
-	    return "";
-	}
-	StringBuilder sb = new StringBuilder();
-	sb.append(list.get(0));
-	for (int i = 1; i < list.size(); i++) {
-	    sb.append(',');
-	    sb.append(list.get(i));
-	}
-	return sb.toString();
+        if (list.isEmpty()) {
+            return "";
+        }
+
+        final StringBuilder sb = new StringBuilder(list.size() * 20);
+        sb.append(list.get(0));
+
+        for (int i = 1; i < list.size(); i++) {
+            sb.append(',');
+            sb.append(list.get(i));
+        }
+        return sb.toString();
     }
 
     /**
      * Returns XPath expressions for XML elements which contains text in a given
      * XML document. Result is limited to XML elements which are children of
      * given XML element.
-     * 
-     * @param inputStream
-     *            {@link InputStream} containing XML document
-     * @param parentElement
-     *            XPath which refers to parent XML element
+     *
+     * @param inputStream   {@link InputStream} containing XML document
+     * @param parentElement XPath which refers to parent XML element
+     *
      * @return list of XPath expressions for elements which contains text
      */
     public static List<String> find(final InputStream inputStream,
-	    final String parentElement) {
-	Set<String> elements = findElements(inputStream);
-	List<String> result = new ArrayList<>();
-	for (String element : elements) {
-	    if (element.startsWith(parentElement)) {
-		result.add(element.substring(parentElement.length(),
-			element.length()));
-	    }
-	}
-	return result;
+            final String parentElement) {
+        final Set<String> elements = findElements(inputStream);
+        final List<String> result = new ArrayList<>(elements.size() * 20);
+
+        for (final String element : elements) {
+            if (element.startsWith(parentElement)) {
+                result.add(element.substring(parentElement.length(),
+                        element.length()));
+            }
+        }
+
+        return result;
     }
 
     /**
      * Returns XPath expressions for all XML elements in a given XML document.
-     * 
-     * @param inputStream
-     *            {@link InputStream} containing XML document
-     * 
+     *
+     * @param inputStream {@link InputStream} containing XML document
+     *
      * @return list of XPath expressions for all XML elements which contains
      *         text
      */
     private static Set<String> findElements(final InputStream inputStream) {
-	Set<String> elementNames = new LinkedHashSet<>();
-	final XMLInputFactory xMLInputFactory = XMLInputFactory.newInstance();
-	try {
-	    final XMLStreamReader reader = xMLInputFactory
-		    .createXMLStreamReader(inputStream);
+        final Set<String> elementNames = new LinkedHashSet<>(10);
+        final XMLInputFactory xMLInputFactory = XMLInputFactory.newInstance();
 
-	    find(elementNames, reader, "");
-	} catch (final XMLStreamException ex) {
-	    throw new RuntimeException("XML stream exception", ex);
-	}
-	return elementNames;
+        try {
+            final XMLStreamReader reader = xMLInputFactory
+                    .createXMLStreamReader(inputStream);
+
+            find(elementNames, reader, "");
+        } catch (final XMLStreamException ex) {
+            throw new RuntimeException("XML stream exception", ex);
+        }
+
+        return elementNames;
     }
 
     /**
      * Finds XPath expressions for all XML elements in given
      * {@link XMLStreamReader} and adds it to given set.
-     * 
-     * @param elementNames
-     *            set with XPath expressions
-     * @param reader
-     *            XML stream reader
-     * @param currentElement
-     *            current XML element
-     * @throws XMLStreamException
-     *             if unexpected XML processing error occurs
+     *
+     * @param elementNames   set with XPath expressions
+     * @param reader         XML stream reader
+     * @param currentElement current XML element
+     *
+     * @throws XMLStreamException if unexpected XML processing error occurs
      */
     private static void find(final Set<String> elementNames,
-	    final XMLStreamReader reader, final String currentElement)
-	    throws XMLStreamException {
-	boolean hasText = false;
-	String currentName = null;
-	while (reader.hasNext()) {
-	    switch (reader.next()) {
-	    case XMLStreamReader.START_ELEMENT:
-		currentName = currentElement + "/" + reader.getLocalName();
-		find(elementNames, reader, currentName);
-		break;
-	    case XMLStreamReader.CHARACTERS:
-		if (reader.isWhiteSpace()) {
-		    break;
-		}
-		hasText = true;
-		break;
-	    case XMLStreamReader.END_ELEMENT:
-		if (hasText) {
-		    elementNames.add(currentElement);
-		}
-		return;
-	    }
-	}
-    }
+            final XMLStreamReader reader, final String currentElement)
+            throws XMLStreamException {
+        boolean hasText = false;
 
+        while (reader.hasNext()) {
+            switch (reader.next()) {
+                case XMLStreamReader.START_ELEMENT:
+                    final String currentName = currentElement + "/" + reader.
+                            getLocalName();
+                    find(elementNames, reader, currentName);
+
+                    break;
+                case XMLStreamReader.CHARACTERS:
+                    if (reader.isWhiteSpace()) {
+                        break;
+                    }
+
+                    hasText = true;
+
+                    break;
+                case XMLStreamReader.END_ELEMENT:
+                    if (hasText) {
+                        elementNames.add(currentElement);
+                    }
+
+                    return;
+            }
+        }
+    }
 }
