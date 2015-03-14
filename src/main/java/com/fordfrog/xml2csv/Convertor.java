@@ -28,14 +28,20 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
+
+import org.apache.commons.io.input.BOMInputStream;
 
 /**
  * XML to CSV convertor.
@@ -62,11 +68,24 @@ public class Convertor {
             final String[] columns, final Filters filters,
             final Remappings remappings, final char separator,
             final boolean trim, final boolean join, final String itemName) {
-        try (final InputStream inputStream = Files.newInputStream(inputFile);
-                final Writer writer = Files.newBufferedWriter(
-                        outputFile, Charset.forName("UtF-8"))) {
-            convert(inputStream, writer, columns, filters, remappings, separator,
-                    trim, join, itemName);
+        try (final Writer writer = Files.newBufferedWriter(outputFile, Charset.forName("UTF-8"))) {
+            if (inputFile.toString().endsWith(".zip")) {
+                try (ZipFile zipFile = new ZipFile(inputFile.toFile())) {
+                    Enumeration<? extends ZipEntry> entries = zipFile.entries();
+                    while (entries.hasMoreElements()) {
+                        ZipEntry entry = entries.nextElement();
+                        try (final InputStream inputStream = new BOMInputStream(zipFile.getInputStream(entry))) {
+                            convert(inputStream, writer, columns, filters, remappings, separator,
+                                    trim, join, itemName);
+                        }
+                    }
+                }
+            } else {
+                try (final InputStream inputStream = Files.newInputStream(inputFile)) {
+                    convert(inputStream, writer, columns, filters, remappings, separator,
+                            trim, join, itemName);
+                }
+            }
         } catch (final IOException ex) {
             throw new RuntimeException("IO operation failed", ex);
         }
