@@ -40,7 +40,7 @@ be converted.
 
 You are not required to compile the application yourself, you can download
 latest binary from https://github.com/fordfrog/xml2csv/downloads. Anyway,
-compilation of ruian2pgsql is easy. Once you install Apache Maven, you just need
+compilation of xml2csv is easy. Once you install Apache Maven, you just need
 to run `mvn package` in the root directory of the sources, where pom.xml file is
 located.
 
